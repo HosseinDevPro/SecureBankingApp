@@ -3,9 +3,12 @@ package com.hkh.securebankingapp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.hkh.securebankingapp.cryptography.CryptographyManagerImpl
 import com.hkh.securebankingapp.utils.SecurityConstant
 import com.hkh.securebankingapp.utils.KeyStoreManager
 import com.hkh.securebankingapp.cryptography.SymmetricKeyGeneration
+import com.hkh.securebankingapp.utils.HexUtils.hexToByteArray
+import com.hkh.securebankingapp.utils.SecurityConstant.INITIAL_VECTOR_SIZE
 
 class MainActivityViewModel : ViewModel() {
 
@@ -14,6 +17,10 @@ class MainActivityViewModel : ViewModel() {
     }
     private val symmetricKeyGenerationUtil by lazy {
         SymmetricKeyGeneration(keyStoreManager)
+    }
+
+    private val cryptography by lazy {
+        CryptographyManagerImpl(keyStoreManager)
     }
 
     private val _encryptedData = MutableLiveData<ByteArray?>()
@@ -41,7 +48,7 @@ class MainActivityViewModel : ViewModel() {
 
     fun checkKeyGeneration() {
         if (!keyStoreManager.isKeyExist(SecurityConstant.KEY_ALIAS_SYMMETRIC)) {
-            symmetricKeyGenerationUtil.getOrGenerateKey()
+            symmetricKeyGenerationUtil.getOrGenerateSecretKey()
             _checkKeyGeneration.value = true
         } else {
             _isKeyExist.value = true
@@ -75,7 +82,8 @@ class MainActivityViewModel : ViewModel() {
     }
 
     fun encryptData(userInputText: String) {
-        _encryptedData.value = symmetricKeyGenerationUtil.encrypt(userInputText)
+        val cipher = cryptography.getInitializedCipherForEncryption()
+        _encryptedData.value = cryptography.encryptData(userInputText, cipher)
     }
 
 
@@ -94,7 +102,14 @@ class MainActivityViewModel : ViewModel() {
     }
 
     fun decryptData(encryptedText: String) {
-        _decryptedData.value = symmetricKeyGenerationUtil.decrypt(encryptedText)
+        // Decode the Hex-encoded (iv + encrypted_text) into bytes
+        val fullBytes = encryptedText.hexToByteArray()
+        // Extract iv 12 bytes
+        val iv = fullBytes.sliceArray(0 .. INITIAL_VECTOR_SIZE-1)
+        // Extract all other ciphered bytes
+        val encryptedBytes = fullBytes.sliceArray(INITIAL_VECTOR_SIZE.. fullBytes.lastIndex)
+        val cipher = cryptography.getInitializedCipherForDecryption(iv)
+        _decryptedData.value = cryptography.decryptData(encryptedBytes, cipher)
     }
 
 }

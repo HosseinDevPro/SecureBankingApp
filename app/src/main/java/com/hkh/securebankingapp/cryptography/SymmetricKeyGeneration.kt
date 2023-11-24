@@ -35,7 +35,7 @@ import javax.crypto.spec.GCMParameterSpec
 class SymmetricKeyGeneration(private val keyStoreManager: KeyStoreManager) {
 
     // Create key if not exist, else retrieve the key from keystore
-    fun getOrGenerateKey(): SecretKey? {
+    fun getOrGenerateSecretKey(): SecretKey? {
         // Check if the secret key with the specified alias exists in the keystore
         if (!keyStoreManager.isKeyExist(KEY_ALIAS_SYMMETRIC)) {
             // If the key doesn't exist, create and store a new secret key
@@ -107,138 +107,6 @@ class SymmetricKeyGeneration(private val keyStoreManager: KeyStoreManager) {
             }
         }
         return builder.build() // Build and return the KeyGenParameterSpec
-    }
-
-    @Throws(KeyStoreException::class)
-    // It got a plain text and return base64 encoded string of encrypted
-    fun encrypt(plainText: String): ByteArray? {
-        try {
-            // Convert the plain text into a byte array using UTF-8 encoding
-            val plainBytes = plainText.toByteArray(StandardCharsets.UTF_8)
-
-            // Retrieve the secret key from the keystore using the specified alias
-            val key = keyStoreManager.getKeyWithAlias(KEY_ALIAS_SYMMETRIC)
-
-            // Create a Cipher instance for AES-GCM encryption
-            val cipher = Cipher.getInstance(AES_GCM_NOPADDING)
-
-            // Initialize the cipher for encryption using the retrieved key
-            cipher.init(Cipher.ENCRYPT_MODE, key)
-
-            // Obtain the IV (Initialization Vector) from the initialized cipher
-            val iv = cipher.iv
-
-            // Encrypt the plain text bytes using the cipher
-            val encryptedBytes = cipher.doFinal(plainBytes)
-
-            // Containing the IV bytes and the encrypted
-            return iv + encryptedBytes
-        } catch (e: UnrecoverableEntryException) {
-            // Handle exceptions related to key retrieval and keystore operations
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: NoSuchAlgorithmException) {
-            // Handle exceptions related to unsupported algorithms
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: CertificateException) {
-            // Handle exceptions related to certificate issues
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: IOException) {
-            // Handle exceptions related to input/output issues
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: NoSuchPaddingException) {
-            // Handle exceptions related to unsupported padding
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: InvalidKeyException) {
-            // Handle exceptions related to invalid encryption key
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: IllegalBlockSizeException) {
-            // Handle exceptions related to illegal block sizes
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: BadPaddingException) {
-            // Handle exceptions related to bad padding
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: IllegalArgumentException) {
-            // Handle exceptions related to illegal argument
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        }
-    }
-
-    @Throws(KeyStoreException::class)
-    // It got a hex encoded string and return plain decrypted text
-    fun decrypt(encryptedHexEncodedText: String): String? {
-        try {
-            // Decode the Hex-encoded iv and encrypted text into bytes
-            val allBytes = encryptedHexEncodedText.hexToByteArray()
-
-            // Extract iv 12 bytes
-            val iv = allBytes.sliceArray(0 .. INITIAL_VECTOR_SIZE-1)
-
-            // Extract all other ciphered bytes
-            val encryptedBytes = allBytes.sliceArray(INITIAL_VECTOR_SIZE.. allBytes.lastIndex)
-
-            // Retrieve the secret key from the keystore using the specified alias
-            val key = keyStoreManager.getKeyWithAlias(KEY_ALIAS_SYMMETRIC)
-
-            // Create a GCMParameterSpec with the authentication tag size and the provided IV
-            val spec = GCMParameterSpec(AUTHENTICATION_TAG_SIZE, iv)
-
-            // Create a Cipher instance for AES-GCM decryption
-            val cipher = Cipher.getInstance(AES_GCM_NOPADDING)
-
-            // Initialize the cipher for decryption using the key and GCM parameters
-            cipher.init(Cipher.DECRYPT_MODE, key, spec)
-
-            // Decrypt the encrypted bytes using the initialized cipher
-            val decryptedBytes = cipher.doFinal(encryptedBytes)
-
-            // Convert the decrypted bytes back to a string using UTF-8 encoding
-            return String(decryptedBytes, StandardCharsets.UTF_8)
-        } catch (e: UnrecoverableEntryException) {
-            // Handle exceptions related to key retrieval and keystore operations
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: NoSuchAlgorithmException) {
-            // Handle exceptions related to unsupported algorithms
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: CertificateException) {
-            // Handle exceptions related to certificate issues
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: IOException) {
-            // Handle exceptions related to input/output issues
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: NoSuchPaddingException) {
-            // Handle exceptions related to unsupported padding
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: InvalidKeyException) {
-            // Handle exceptions related to an invalid encryption key
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: IllegalBlockSizeException) {
-            // Handle exceptions related to illegal block sizes
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: BadPaddingException) {
-            // Handle exceptions related to bad padding
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        } catch (e: IllegalArgumentException) {
-            // Handle exceptions related to illegal argument
-            Log.d(APP_TAG, e.stackTraceToString())
-            return null
-        }
     }
 
 }
