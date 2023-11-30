@@ -9,6 +9,7 @@ import com.hkh.securebankingapp.utils.KeyStoreManager
 import com.hkh.securebankingapp.cryptography.SymmetricKeyGeneration
 import com.hkh.securebankingapp.utils.HexUtils.hexToByteArray
 import com.hkh.securebankingapp.utils.SecurityConstant.INITIAL_VECTOR_SIZE
+import javax.crypto.Cipher
 
 class MainActivityViewModel : ViewModel() {
 
@@ -67,12 +68,17 @@ class MainActivityViewModel : ViewModel() {
     }
 
 
-    private val _checkEncryptionMessage = MutableLiveData<String>()
-    val checkEncryptionMessage: LiveData<String> = _checkEncryptionMessage
+    private val _checkEncryptionFlow = MutableLiveData<Pair<String, Cipher>>()
+    val checkEncryptionFlow: LiveData<Pair<String, Cipher>> = _checkEncryptionFlow
     fun checkEncryption(userInputText: String) {
         if (userInputText.isNotEmpty()) {
             if (keyStoreManager.isKeyExist(SecurityConstant.KEY_ALIAS_SYMMETRIC)) {
-                _checkEncryptionMessage.value = userInputText
+                val cipher = buildCipherForEncryption()
+                if (cipher != null) {
+                    _checkEncryptionFlow.value = Pair(userInputText, cipher)
+                } else {
+                    _showErrorMessage.value = R.string.an_error_occurred
+                }
             } else {
                 _isKeyExist.value = false
             }
@@ -81,18 +87,26 @@ class MainActivityViewModel : ViewModel() {
         }
     }
 
-    fun encryptData(userInputText: String) {
-        val cipher = cryptography.getInitializedCipherForEncryption()
+    private fun buildCipherForEncryption(): Cipher? {
+        return cryptography.getInitializedCipherForEncryption()
+    }
+
+    fun encryptData(userInputText: String, cipher: Cipher?) {
         _encryptedData.value = cryptography.encryptData(userInputText, cipher)
     }
 
 
-    private val _checkDecryptionMessage = MutableLiveData<String>()
-    val checkDecryptionMessage: LiveData<String> = _checkDecryptionMessage
+    private val _checkDecryptionFlow = MutableLiveData<Pair<String, Cipher>>()
+    val checkDecryptionFlow: LiveData<Pair<String, Cipher>> = _checkDecryptionFlow
     fun checkDecryption(encryptedText: String, defaultText: String) {
         if (encryptedText != defaultText) {
             if (keyStoreManager.isKeyExist(SecurityConstant.KEY_ALIAS_SYMMETRIC)) {
-                _checkDecryptionMessage.value = encryptedText
+                val cipher = buildCipherForDecryption(encryptedText)
+                if (cipher != null) {
+                    _checkDecryptionFlow.value = Pair(encryptedText, cipher)
+                } else {
+                    _showErrorMessage.value = R.string.an_error_occurred
+                }
             } else {
                 _isKeyExist.value = false
             }
@@ -101,14 +115,19 @@ class MainActivityViewModel : ViewModel() {
         }
     }
 
-    fun decryptData(encryptedText: String) {
+    private fun buildCipherForDecryption(encryptedText: String): Cipher? {
         // Decode the Hex-encoded (iv + encrypted_text) into bytes
         val fullBytes = encryptedText.hexToByteArray()
         // Extract iv 12 bytes
         val iv = fullBytes.sliceArray(0 .. INITIAL_VECTOR_SIZE-1)
+        return cryptography.getInitializedCipherForDecryption(iv)
+    }
+
+    fun decryptData(encryptedText: String, cipher: Cipher?) {
+        // Decode the Hex-encoded (iv + encrypted_text) into bytes
+        val fullBytes = encryptedText.hexToByteArray()
         // Extract all other ciphered bytes
         val encryptedBytes = fullBytes.sliceArray(INITIAL_VECTOR_SIZE.. fullBytes.lastIndex)
-        val cipher = cryptography.getInitializedCipherForDecryption(iv)
         _decryptedData.value = cryptography.decryptData(encryptedBytes, cipher)
     }
 

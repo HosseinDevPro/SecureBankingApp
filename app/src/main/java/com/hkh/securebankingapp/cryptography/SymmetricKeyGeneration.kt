@@ -87,15 +87,6 @@ class SymmetricKeyGeneration(private val keyStoreManager: KeyStoreManager) {
             setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE) // Specify no encryption padding
             setUserAuthenticationRequired(true) // Require user authentication to use the key
             setRandomizedEncryptionRequired(true) // Require randomized encryption for added security
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                // Set additional security feature for Android R (API level 30) and higher
-                setUserAuthenticationParameters(
-                    AUTHENTICATION_VALIDITY_DURATION,// The key will require strong biometric authentication and remain valid for 10 seconds
-                    KeyProperties.AUTH_BIOMETRIC_STRONG// Set user authentication strong for a cryptographic key
-                )
-            } else {
-                setUserAuthenticationValidityDurationSeconds(AUTHENTICATION_VALIDITY_DURATION) // Specify user authentication validity duration (in seconds)
-            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 // Set additional security feature for Android N (API level 24) and higher
                 setInvalidatedByBiometricEnrollment(true) // Invalidate the key if biometric enrollment changes

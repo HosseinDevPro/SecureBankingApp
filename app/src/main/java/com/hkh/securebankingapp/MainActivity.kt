@@ -11,6 +11,7 @@ import com.hkh.securebankingapp.databinding.ActivityMainBinding
 import com.hkh.securebankingapp.utils.FingerprintPrompt
 import com.hkh.securebankingapp.utils.HexUtils.byteArrayToHex
 import com.hkh.securebankingapp.utils.SecurityConstant.KEY_ALIAS_SYMMETRIC
+import javax.crypto.Cipher
 
 class MainActivity : AppCompatActivity() {
 
@@ -66,9 +67,9 @@ class MainActivity : AppCompatActivity() {
         }
 
     private fun observeCheckEncryptionMessage() =
-        viewModel.checkEncryptionMessage.observe(this) { userInputText ->
-            openBiometric {
-                viewModel.encryptData(userInputText)
+        viewModel.checkEncryptionFlow.observe(this) { result ->
+            openBiometric(result.second) { newCipher ->
+                viewModel.encryptData(result.first, newCipher)
             }
         }
 
@@ -81,9 +82,9 @@ class MainActivity : AppCompatActivity() {
         }
 
     private fun observeCheckDecryptionMessage() =
-        viewModel.checkDecryptionMessage.observe(this) { encryptedText ->
-            openBiometric {
-                viewModel.decryptData(encryptedText)
+        viewModel.checkDecryptionFlow.observe(this) { result ->
+            openBiometric(result.second) { newCipher ->
+                viewModel.decryptData(result.first, newCipher)
             }
         }
 
@@ -140,13 +141,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openBiometric(onSuccess: () -> Unit) {
+    private fun openBiometric(cipher: Cipher?, onSuccess: (Cipher?) -> Unit) {
         fingerprintPrompt.show(
             title = getString(R.string.need_finger_print_for_operation),
-            description = getString(R.string.cancel)
+            description = getString(R.string.cancel),
+            cipher = cipher
         ).observe(this) { result ->
             if (result.isSuccess) {
-                onSuccess.invoke()
+                onSuccess.invoke(result.cipher)
             } else {
                 if (result.isFailedToReadFingerPrint())
                     showToast(getString(R.string.failed_to_read_biometric))
