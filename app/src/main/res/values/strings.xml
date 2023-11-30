@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">SecureBankingApp</string>
 
-    <string name="symmetric_page_title">We are using reversible-symmetric way with AES-256 algorithm data encryption/decryption</string>
+    <string name="symmetric_page_title">We are using fully bind biometric to ciphering, reversible-symmetric way with AES-256 algorithm data encryption/decryption</string>
     <string name="please_enter_text">Please enter a text</string>
     <string name="unknown_encrypted">Encrypted: ???</string>
     <string name="unknown_decrypted">Decrypted: ???</string>
