@@ -7,4 +7,6 @@ frida-scripts - Contains Frida scripts for auditing local authentication impleme
 
 secure-banking-app - Contains a reference Android application implementing cryptography operations with the KeyStore API.
 
-See more at: https://book.hacktricks.xyz/mobile-pentesting/android-app-pentesting/bypass-biometric-authentication-android
+Article link: https://medium.com/@hossein_kheirollahpour/implementation-of-secure-encryption-against-attacks-in-financial-android-applications-51a473f4d42e
+
+See more about frida attack at: https://book.hacktricks.xyz/mobile-pentesting/android-app-pentesting/bypass-biometric-authentication-android
