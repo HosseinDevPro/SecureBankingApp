@@ -1,5 +1,6 @@
 package com.hkh.securebankingapp
 
+import android.content.pm.PackageManager
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -33,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initActions() {
+        viewModel.supportStrongBox = hasStrongBox()
         observeIsKeyExist()
         observeShowErrorMessage()
         observeCheckKeyGeneration()
@@ -155,6 +157,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun hasStrongBox() = this.packageManager.hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
 
     override fun onDestroy() {
         super.onDestroy()

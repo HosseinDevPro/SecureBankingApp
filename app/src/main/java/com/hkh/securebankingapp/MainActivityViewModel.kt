@@ -13,11 +13,13 @@ import javax.crypto.Cipher
 
 class MainActivityViewModel : ViewModel() {
 
+    var supportStrongBox = false
+
     val keyStoreManager by lazy {
         KeyStoreManager()
     }
     private val symmetricKeyGenerationUtil by lazy {
-        SymmetricKeyGeneration(keyStoreManager)
+        SymmetricKeyGeneration(supportStrongBox, keyStoreManager)
     }
 
     private val cryptography by lazy {

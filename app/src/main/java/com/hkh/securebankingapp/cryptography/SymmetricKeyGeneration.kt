@@ -1,38 +1,22 @@
 package com.hkh.securebankingapp.cryptography
 
 import android.os.Build
-import android.security.KeyStoreException
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import android.util.Log
-import com.hkh.securebankingapp.utils.HexUtils.hexToByteArray
 import com.hkh.securebankingapp.utils.KeyStoreManager
-import com.hkh.securebankingapp.utils.SecurityConstant.AES_GCM_NOPADDING
 import com.hkh.securebankingapp.utils.SecurityConstant.ANDROID_KEY_STORE_PROVIDER
 import com.hkh.securebankingapp.utils.SecurityConstant.APP_TAG
-import com.hkh.securebankingapp.utils.SecurityConstant.AUTHENTICATION_TAG_SIZE
 import com.hkh.securebankingapp.utils.SecurityConstant.KEY_ALIAS_SYMMETRIC
 import com.hkh.securebankingapp.utils.SecurityConstant.KEY_SIZE
-import com.hkh.securebankingapp.utils.SecurityConstant.AUTHENTICATION_VALIDITY_DURATION
-import com.hkh.securebankingapp.utils.SecurityConstant.INITIAL_VECTOR_SIZE
-import java.io.IOException
-import java.nio.charset.StandardCharsets
 import java.security.InvalidAlgorithmParameterException
-import java.security.InvalidKeyException
 import java.security.NoSuchAlgorithmException
 import java.security.NoSuchProviderException
-import java.security.UnrecoverableEntryException
-import java.security.cert.CertificateException
-import javax.crypto.BadPaddingException
-import javax.crypto.Cipher
-import javax.crypto.IllegalBlockSizeException
 import javax.crypto.KeyGenerator
-import javax.crypto.NoSuchPaddingException
 import javax.crypto.SecretKey
-import javax.crypto.spec.GCMParameterSpec
 
-class SymmetricKeyGeneration(private val keyStoreManager: KeyStoreManager) {
+class SymmetricKeyGeneration(private val hasStrongBox: Boolean, private val keyStoreManager: KeyStoreManager) {
 
     // Create key if not exist, else retrieve the key from keystore
     fun getOrGenerateSecretKey(): SecretKey? {
@@ -94,7 +78,7 @@ class SymmetricKeyGeneration(private val keyStoreManager: KeyStoreManager) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 // Set additional security features for Android P (API level 28) and higher
                 setUnlockedDeviceRequired(true) // Require an unlocked device to use the key
-                setIsStrongBoxBacked(true) // Use StrongBox security if available
+                if (hasStrongBox) setIsStrongBoxBacked(true) // Use StrongBox security if available
             }
         }
         return builder.build() // Build and return the KeyGenParameterSpec
