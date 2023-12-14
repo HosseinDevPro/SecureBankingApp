@@ -1,11 +1,12 @@
 # SecureBankingApp
-Anti-Frida Attack Android Application
+<h3>Anti-Frida Attack Android Application</h3>
 
-Attak: Bypass biometric authentication
+Attack: Bypass biometric authentication
 
-frida-scripts - Contains Frida scripts for auditing local authentication implementations.
 
-secure-banking-app - Contains a reference Android application implementing cryptography operations with the KeyStore API.
+- frida-scripts - Contains Frida scripts for auditing local authentication implementations.
+
+- secure-banking-app - Contains a reference Android application implementing cryptography operations with the KeyStore API.
 
 Article link: https://medium.com/@hossein_kheirollahpour/implementation-of-secure-encryption-against-attacks-in-financial-android-applications-51a473f4d42e
 
